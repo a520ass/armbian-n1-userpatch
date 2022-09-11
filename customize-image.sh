@@ -18,25 +18,27 @@ BOARD=$3
 BUILD_DESKTOP=$4
 
 main() {
-	echo "adjusting /boot"
-	local dtbpath=$(realpath /boot/dtb)
-	rm -rf /boot/dtb
-	cp -r ${dtbpath} /boot/dtb
-	mv /boot/dtb/amlogic/meson-gxl-s905d-phicomm-n1.dtb /boot
-	sed -i -e '/fdtfile=/d' /boot/armbianEnv.txt
-	echo fdtfile=amlogic/meson-gxl-s905d-phicomm-n1.dtb >> /boot/armbianEnv.txt
-	rm -rf /boot/boot.bmp /boot/uImage /boot/armbian_first_run.txt.template
-	rm -rf /boot/dtb/rockchip /boot/dtb/amlogic/*.* /boot/dtb/amlogic/overlay
-	mv /boot/meson-gxl-s905d-phicomm-n1.dtb /boot/dtb/amlogic/
-
-	rsync -a /tmp/overlay/* /
-
 	mkimage -C none -A arm -T script -d /boot/emmc_autoscript.cmd /boot/emmc_autoscript
 	mkimage -C none -A arm -T script -d /boot/s905_autoscript.cmd /boot/s905_autoscript
-	cp /boot/u-boot-n1.bin /boot/u-boot.ext
-	cp /boot/u-boot-n1.bin /boot/u-boot.emmc
+	cp /boot/u-boot-s905x.bin /boot/u-boot.ext
 
 	sync
+
+	# timezone
+	ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+	dpkg-reconfigure -f noninteractive tzdata
+	# fonts-noto-cjk
+	apt install -y fonts-noto-cjk
+	# locale
+	if ! grep -q "^zh_CN.UTF-8 UTF-8" /etc/locale.gen; then
+		echo "sed -i 's/# zh_CN.UTF-8/zh_CN.UTF-8/' /etc/locale.gen"
+		sed -i 's/# zh_CN.UTF-8/zh_CN.UTF-8/' /etc/locale.gen
+		cat /etc/locale.gen
+		echo "locale-gen"
+		locale-gen
+		echo "update-locale LANG=zh_CN.UTF-8 LANGUAGE=zh_CN.UTF-8 LC_MESSAGES=zh_CN.UTF-8"
+		update-locale LANG=zh_CN.UTF-8 LANGUAGE=zh_CN.UTF-8 LC_MESSAGES=zh_CN.UTF-8
+	fi
 }
 
 main "$@"
