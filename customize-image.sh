@@ -18,9 +18,13 @@ BOARD=$3
 BUILD_DESKTOP=$4
 
 main() {
+	# ¸´ÖÆÎÄ¼þ
+	rsync -a /tmp/overlay/* /
+
+	mkimage -C none -A arm -T script -d /boot/boot.cmd /boot/boot.scr
 	mkimage -C none -A arm -T script -d /boot/emmc_autoscript.cmd /boot/emmc_autoscript
 	mkimage -C none -A arm -T script -d /boot/s905_autoscript.cmd /boot/s905_autoscript
-	cp /boot/u-boot-s905x.bin /boot/u-boot.ext
+	cp /boot/u-boot-s905x.ext /boot/u-boot.ext
 
 	sync
 
